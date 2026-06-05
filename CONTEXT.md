@@ -4,23 +4,30 @@
 Repo: https://github.com/RogerMallett/DODGERS-INJUREDLIST
 Branch: icm-refactor
 Local path: H:\My Drive\__AI MyProjects\dodgers-injuredlist
+Public URL: https://dodgers-injury-tracker.vercel.app
 
 ## Current Status
-Building ICM workspace around existing Perplexity-generated dashboard.
-Learning the Jake Van Clief ICM methodology as the primary goal.
-The working dashboard is the artifact; ICM structure is the skill.
+Live on Vercel. Dashboard deployed and publicly accessible.
+Data is currently static/hardcoded — Phase 2 will wire live MLB Stats API.
 
 ## What's Done
 - [x] icm-refactor branch created and pushed to GitHub
 - [x] Layer 0: claude.md rewritten to 15-line ICM orientation file
 - [x] Layer 1: CONTEXT.md created (this file)
+- [x] docs/ folder created
+- [x] docs/ROADMAP.md created (Layer 3 — long-term product vision)
+- [x] docs/DATA-SOURCES.md created (Layer 3 — MLB API reference)
+- [x] Dashboard verified running locally
+- [x] Title updated to "Leslie's Dodgers Injury Tracker" in dashboard.tsx
+- [x] Browser tab title set in index.html
+- [x] vercel.json configured for client/Vite build structure
+- [x] Deployed to Vercel — production URL is permanent and publicly shareable
 
 ## What's Next
-- [ ] Create docs/ folder
-- [ ] Create docs/ROADMAP.md (Layer 3 — long-term product vision)
-- [ ] Create docs/DATA-SOURCES.md (Layer 3 — MLB API reference)
-- [ ] Verify dashboard runs locally (npm run dev)
-- [ ] Phase 2: wire live MLB Stats API data
+- [ ] Phase 2: wire live MLB Stats API data (replace hardcoded data)
+- [ ] GitHub Actions for daily auto-updates
+- [ ] Mobile PWA configuration (add to Android home screen)
+- [ ] Explore tunneling (discussed, deferred)
 
 ## Long-Term Vision
 - Any MLB team (team picker)
@@ -31,3 +38,4 @@ The working dashboard is the artifact; ICM structure is the skill.
 ## Stack
 React 18 + TypeScript + Vite + Tailwind CSS v3 + shadcn/ui + Recharts
 Windows 11 / PowerShell / VS Code + Claude Code
+Hosting: Vercel (free Hobby tier)
