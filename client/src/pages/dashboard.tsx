@@ -116,7 +116,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="text-xl font-semibold tracking-tight" data-testid="text-title">
-                Dodgers Injury Tracker
+                Leslie's Dodgers Injury Tracker
               </h1>
               <p className="text-xs text-muted-foreground" data-testid="text-subtitle">
                 2026 season · Updated {seasonSummary.lastUpdated}
