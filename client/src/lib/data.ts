@@ -206,6 +206,10 @@ export const players: ILPlayer[] = [
 ];
 
 // Key injury waves marked on the chart
+// ⚠️ HARDCODED — Phase 3: Replace with MLB Stats API data.
+// These injury wave annotations are editorial and currently maintained manually.
+// The MLB Stats API does not return this data directly — will require
+// a custom mapping from API placement dates to wave events.
 export interface InjuryWave {
   date: string;
   label: string;

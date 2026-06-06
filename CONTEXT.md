@@ -3,7 +3,7 @@
 ## Project
 Repo: https://github.com/RogerMallett/DODGERS-INJUREDLIST
 Branch: icm-refactor
-Local path: H:\My Drive\__AI MyProjects\dodgers-injuredlist
+Local path: C:\__My_AI_Projects\dodgers-injuredlist
 Public URL: https://dodgers-injury-tracker.vercel.app
 
 ## Current Status
@@ -28,6 +28,11 @@ Data is currently static/hardcoded — Phase 2 will wire live MLB Stats API.
 - [ ] GitHub Actions for daily auto-updates
 - [ ] Mobile PWA configuration (add to Android home screen)
 - [ ] Explore tunneling (discussed, deferred)
+- [ ] Phase 3: Replace hardcoded `waves` array in data.ts with MLB API data (waves = injury wave annotations on the chart; currently editorial/manual — not returned by MLB Stats API)
+- [ ] Future: Authentication system (storage.ts scaffold already in place for user login/accounts — relevant for paid tier)
+- [ ] Phase 3: Replace hardcoded ImpactGroup summary strings in dashboard.tsx 
+      with Claude API-generated summaries (same pattern as player notes/expectedReturn)
+
 
 ## Long-Term Vision
 - Any MLB team (team picker)

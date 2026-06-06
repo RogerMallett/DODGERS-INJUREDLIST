@@ -41,7 +41,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import { players, waves, trend, seasonSummary, ILPlayer } from "@/lib/data";
+import { waves, trend, seasonSummary, ILPlayer } from "@/lib/data";
+import { useInjuries } from "@/hooks/use-injuries";
 
 function impactBadge(impact: ILPlayer["impact"]) {
   const map = {
@@ -66,6 +67,7 @@ function statusBadge(status: ILPlayer["status"]) {
   }
   if (status === "15-Day IL") {
     return <Badge variant="outline">{status}</Badge>;
+
   }
   return <Badge variant="secondary">{status}</Badge>;
 }
@@ -74,17 +76,16 @@ type RoleFilter = "All" | "Starting Pitcher" | "Relief Pitcher" | "Position Play
 
 export default function Dashboard() {
   const [filter, setFilter] = useState<RoleFilter>("All");
+  const { players, loading, error } = useInjuries();
 
   const filtered = useMemo(() => {
     if (filter === "All") return players;
     return players.filter((p) => p.role === filter);
-  }, [filter]);
+  }, [filter, players]);
 
-  // Map injury wave dates → game index for chart annotations
   const waveAnnotations = useMemo(() => {
     return waves
       .map((w) => {
-        // Find the first game on or after this wave's date
         const point = trend.find((t) => t.date >= w.date);
         return point
           ? { ...w, game: point.game, pct: point.pct }
@@ -95,12 +96,18 @@ export default function Dashboard() {
     >;
   }, []);
 
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading injury data...</div>;
+  if (error) return <div className="min-h-screen bg-background flex items-center justify-center text-destructive">Error: {error}</div>;
+
   const ilCount = players.filter((p) => p.status !== "Day-to-Day").length;
+
   const pitcherCount = players.filter(
     (p) =>
       p.status !== "Day-to-Day" &&
       (p.role === "Starting Pitcher" || p.role === "Relief Pitcher")
   ).length;
+
+  
   const highImpact = players.filter(
     (p) => p.impact === "High" && p.status !== "Day-to-Day"
   ).length;
