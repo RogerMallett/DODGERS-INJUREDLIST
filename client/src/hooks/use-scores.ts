@@ -25,10 +25,12 @@ export function useScores(): ScoresResult {
         return res.json();
       })
       .then((data) => {
+        console.log("[use-scores] API response:", data);
         const map: Record<string, GameScore> = {};
         for (const g of data.scores ?? []) {
           map[g.date] = g;
         }
+        console.log("[use-scores] scoresByDate keys:", Object.keys(map).length);
         setScoresByDate(map);
         setLoading(false);
       })

@@ -1,6 +1,4 @@
-// Vercel serverless function — GET /api/scores
-// Fetches Dodgers 2026 game-by-game results from MLB Stats API.
-// Returns runs scored/allowed + opponent for each completed game.
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 interface GameScore {
   date: string;
@@ -33,21 +31,33 @@ async function fetchGameScores(): Promise<GameScore[]> {
     `?teamId=${DODGERS_ID}&season=2026&gameType=R` +
     `&startDate=2026-03-26&endDate=2026-12-31`;
 
-  console.log("Fetching scores from:", url);
+  console.log("[scores] Fetching:", url);
+
   const res = await fetch(url);
+  const rawText = await res.text();
+
+  console.log("[scores] HTTP status:", res.status);
+  console.log("[scores] Response preview:", rawText.slice(0, 500));
 
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`MLB API error: ${res.status} — ${body.slice(0, 200)}`);
+    throw new Error(`MLB API error: ${res.status} — ${rawText.slice(0, 200)}`);
   }
 
-  const json = (await res.json()) as any;
-  console.log("MLB API dates returned:", json.dates?.length ?? 0);
+  let json: any;
+  try {
+    json = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error(`MLB API returned non-JSON: ${rawText.slice(0, 200)}`);
+  }
+
+  console.log("[scores] Total date entries:", json.dates?.length ?? 0);
 
   const scores: GameScore[] = [];
 
   for (const dateEntry of json.dates ?? []) {
     for (const game of dateEntry.games ?? []) {
+      console.log(`[scores] Game on ${dateEntry.date}: state=${game.status?.abstractGameState}, home=${game.teams?.home?.team?.id}, away=${game.teams?.away?.team?.id}`);
+
       if (game.status?.abstractGameState !== "Final") continue;
 
       const home = game.teams?.home;
@@ -64,7 +74,7 @@ async function fetchGameScores(): Promise<GameScore[]> {
       const opponentName =
         TEAM_ABBREV[opponentId] ?? opponent.team?.name ?? "Opponent";
 
-      console.log(`  ${dateEntry.date}: Dodgers ${runsFor} - ${opponentName} ${runsAgainst}`);
+      console.log(`[scores] ✓ ${dateEntry.date}: LAD ${runsFor} - ${opponentName} ${runsAgainst}`);
 
       scores.push({
         date: dateEntry.date,
@@ -75,11 +85,11 @@ async function fetchGameScores(): Promise<GameScore[]> {
     }
   }
 
-  console.log("Total scores parsed:", scores.length);
+  console.log("[scores] Total scores parsed:", scores.length);
   return scores;
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method not allowed" });
     return;
@@ -87,15 +97,15 @@ export default async function handler(req: any, res: any) {
 
   try {
     if (cache && Date.now() - cache.timestamp < CACHE_TTL_MS) {
-      res.json({ scores: cache.data, cached: true });
+      res.status(200).json({ scores: cache.data, cached: true });
       return;
     }
 
     const scores = await fetchGameScores();
     cache = { data: scores, timestamp: Date.now() };
-    res.json({ scores, cached: false });
+    res.status(200).json({ scores, cached: false });
   } catch (err: any) {
-    console.error("Error in /api/scores:", err.message);
+    console.error("[scores] FATAL:", err.message);
     res.status(500).json({ error: err.message });
   }
 }
