@@ -286,29 +286,41 @@ export default function Dashboard() {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: 8,
                       fontSize: 12,
+                      padding: "8px 12px",
+                      minWidth: 200,
                     }}
                     labelFormatter={(_: any, payload: any[]) => {
                       const p = payload?.[0]?.payload as
                         | (typeof trend)[number]
                         | undefined;
                       if (!p) return "";
-                      return `Game ${p.game} · ${format(parseISO(p.date), "MMM d")}`;
+                      return (
+                        <span style={{ display: "flex", justifyContent: "space-between", fontWeight: 600, marginBottom: 4 }}>
+                          <span>Game {p.game}</span>
+                          <span style={{ textAlign: "right" }}>{format(parseISO(p.date), "MMM d")}</span>
+                        </span>
+                      );
                     }}
                     formatter={(value: number, _name: any, item: any) => {
                       const p = item.payload as (typeof trend)[number];
                       const score = scoresByDate[p.date];
-                      const scoreLine = score
-                        ? `Dodgers ${score.runsFor} · ${score.opponent} ${score.runsAgainst}`
-                        : null;
-                      const wlPct = `Wins: ${p.wins}  ·  Losses: ${p.losses}  ·  PCT: .${Math.round(value * 1000).toString().padStart(3, "0")}`;
+                      const pct = `.${Math.round(value * 1000).toString().padStart(3, "0")}`;
                       return [
-                        <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                          {scoreLine && (
-                            <span style={{ color: "hsl(var(--foreground))", fontWeight: 600 }}>
-                              {scoreLine}
+                        <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          {score && (
+                            <span style={{ display: "flex", justifyContent: "space-between", fontWeight: 600, color: "hsl(var(--foreground))" }}>
+                              <span>Dodgers {score.runsFor}</span>
+                              <span style={{ textAlign: "right" }}>{score.opponent} {score.runsAgainst}</span>
                             </span>
                           )}
-                          <span>{wlPct}</span>
+                          {!score && (
+                            <span style={{ color: "hsl(var(--muted-foreground))" }}>Score unavailable</span>
+                          )}
+                          <span style={{ display: "flex", justifyContent: "space-between", gap: 16, color: "hsl(var(--muted-foreground))" }}>
+                            <span>Wins: {p.wins}</span>
+                            <span>Losses: {p.losses}</span>
+                            <span>PCT: {pct}</span>
+                          </span>
                         </span>,
                         "",
                       ];
