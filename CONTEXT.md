@@ -30,7 +30,9 @@ Data is currently static/hardcoded — Phase 2 will wire live MLB Stats API.
 - [x] dashboard.tsx updated to consume live API data instead of hardcoded data.ts
 - [x] icm-refactor branch merged into main and pushed to GitHub
 - [x] ANTHROPIC_API_KEY added to Vercel environment variables
-- [x] Fixed Vercel deployment: created api/injuries.ts as Vercel serverless function; fixed vercel.json (outputDirectory, installCommand, rewrites); added engines.node=20.x to package.json
+- [x] Fixed Vercel deployment: created api/injuries.ts as Vercel serverless function; fixed vercel.json (outputDirectory, installCommand); added engines.node=20.x to package.json
+- [x] Resolved Vercel build cache/Root Directory issues — live site now serving correct build
+- [x] Full stack live: MLB Stats API → Claude Haiku enrichment → /api/injuries → dashboard
 
 ## What's Next
 - [ ] Phase 2: wire live MLB Stats API data (replace hardcoded data)
