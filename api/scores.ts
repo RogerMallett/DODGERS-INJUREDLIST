@@ -7,9 +7,9 @@ interface GameScore {
   opponent: string;
 }
 
-let cache: { data: GameScore[]; timestamp: number } | null = null;
-const CACHE_BUST = "2026-06-06"; // bump this date to force a fresh fetch
-const CACHE_TTL_MS = 1 * 60 * 60 * 1000;
+let cache: { data: GameScore[]; timestamp: number; version: string } | null = null;
+const CACHE_VERSION = "2026-06-06T001"; // changing this busts the cache on deploy
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 const TEAM_ABBREV: Record<number, string> = {
   108: "Angels",    109: "D-backs",  110: "Orioles",
@@ -98,13 +98,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (cache && Date.now() - cache.timestamp < CACHE_TTL_MS) {
-      res.status(200).json({ scores: cache.data, cached: true, bust: CACHE_BUST });
+    if (cache && cache.version === CACHE_VERSION && Date.now() - cache.timestamp < CACHE_TTL_MS) {
+      res.status(200).json({ scores: cache.data, cached: true });
       return;
     }
 
     const scores = await fetchGameScores();
-    cache = { data: scores, timestamp: Date.now() };
+    cache = { data: scores, timestamp: Date.now(), version: CACHE_VERSION };
     res.status(200).json({ scores, cached: false });
   } catch (err: any) {
     console.error("[scores] FATAL:", err.message);
