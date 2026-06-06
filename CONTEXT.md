@@ -22,8 +22,17 @@ Data is currently static/hardcoded — Phase 2 will wire live MLB Stats API.
 - [x] Browser tab title set in index.html
 - [x] vercel.json configured for client/Vite build structure
 - [x] Deployed to Vercel — production URL is permanent and publicly shareable
+- [x] Project moved from Google Drive to C:\__My_AI_Projects\dodgers-injuredlist
+- [x] Fixed reusePort Windows compatibility issue in server/index.ts
+- [x] Phase 2: MLB Stats API wired via fullRoster endpoint, filtering to IL players with injury notes
+- [x] Phase 2: Claude API enrichment working — generates notes, expectedReturn, impact per player
+- [x] use-injuries.ts hook created to fetch live data from /api/injuries
+- [x] dashboard.tsx updated to consume live API data instead of hardcoded data.ts
+- [x] icm-refactor branch merged into main and pushed to GitHub
+- [x] ANTHROPIC_API_KEY added to Vercel environment variables
 
 ## What's Next
+- [ ] Fix Vercel deployment — live site returns 404 on /api/injuries (Express server not compatible with Vercel serverless model as currently configured)
 - [ ] Phase 2: wire live MLB Stats API data (replace hardcoded data)
 - [ ] GitHub Actions for daily auto-updates
 - [ ] Mobile PWA configuration (add to Android home screen)
