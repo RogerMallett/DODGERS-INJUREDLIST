@@ -94,7 +94,7 @@ Respond with ONLY a valid JSON array. No preamble, no markdown, no backticks.`;
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1000,
+      max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -103,9 +103,12 @@ Respond with ONLY a valid JSON array. No preamble, no markdown, no backticks.`;
   const json = (await res.json()) as any;
   const text = json.content?.[0]?.text ?? "[]";
 
+  // Strip markdown code fences if the model added them despite instructions
+  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+
   let enrichments: Array<{ expectedReturn: string; impact: string; notes: string }>;
   try {
-    enrichments = JSON.parse(text);
+    enrichments = JSON.parse(cleaned);
   } catch {
     console.error("Claude response was not valid JSON:", text);
     return players;
