@@ -20,6 +20,7 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
+  cacheDir: path.resolve(__dirname, "node_modules/.vite-cache"),
   server: {
     fs: {
       strict: true,
