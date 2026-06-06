@@ -33,9 +33,16 @@ async function fetchGameScores(): Promise<GameScore[]> {
     `?teamId=${DODGERS_ID}&season=2026&gameType=R` +
     `&hydrate=linescore&startDate=2026-03-26&endDate=2026-12-31`;
 
+  console.log("Fetching scores from:", url);
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`MLB API error: ${res.status}`);
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`MLB API error: ${res.status} — ${body.slice(0, 200)}`);
+  }
+
   const json = (await res.json()) as any;
+  console.log("MLB API dates returned:", json.dates?.length ?? 0);
 
   const scores: GameScore[] = [];
 
@@ -65,6 +72,7 @@ async function fetchGameScores(): Promise<GameScore[]> {
     }
   }
 
+  console.log("Scores parsed:", scores.length);
   return scores;
 }
 
@@ -82,7 +90,6 @@ export default async function handler(req: any, res: any) {
 
     const scores = await fetchGameScores();
     cache = { data: scores, timestamp: Date.now() };
-
     res.json({ scores, cached: false });
   } catch (err: any) {
     console.error("Error in /api/scores:", err.message);
