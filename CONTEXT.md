@@ -7,8 +7,8 @@ Local path: C:\__My_AI_Projects\dodgers-injuredlist
 Public URL: https://dodgers-injury-tracker.vercel.app
 
 ## Current Status
-Live on Vercel. Dashboard deployed and publicly accessible.
-Data is currently static/hardcoded — Phase 2 will wire live MLB Stats API.
+Live on Vercel. Full-stack deployment working end-to-end.
+Live MLB Stats API data + Claude Haiku enrichment serving through /api/injuries Vercel serverless function.
 
 ## What's Done
 - [x] icm-refactor branch created and pushed to GitHub
@@ -33,9 +33,10 @@ Data is currently static/hardcoded — Phase 2 will wire live MLB Stats API.
 - [x] Fixed Vercel deployment: created api/injuries.ts as Vercel serverless function; fixed vercel.json (outputDirectory, installCommand); added engines.node=20.x to package.json
 - [x] Resolved Vercel build cache/Root Directory issues — live site now serving correct build
 - [x] Full stack live: MLB Stats API → Claude Haiku enrichment → /api/injuries → dashboard
+- [x] Subtitle date made dynamic — always shows today's date
 
 ## What's Next
-- [ ] Phase 2: wire live MLB Stats API data (replace hardcoded data)
+- [ ] Phase 3: Replace hardcoded team record/standings in seasonSummary (data.ts) with live MLB Stats API data
 - [ ] GitHub Actions for daily auto-updates
 - [ ] Mobile PWA configuration (add to Android home screen)
 - [ ] Explore tunneling (discussed, deferred)
