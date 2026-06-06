@@ -43,6 +43,7 @@ import {
 
 import { waves, trend, seasonSummary, ILPlayer } from "@/lib/data";
 import { useInjuries } from "@/hooks/use-injuries";
+import { useScores } from "@/hooks/use-scores";
 
 const positionLabel: Record<string, string> = {
   SP: "starting pitcher",
@@ -95,6 +96,7 @@ type RoleFilter = "All" | "Starting Pitcher" | "Relief Pitcher" | "Position Play
 export default function Dashboard() {
   const [filter, setFilter] = useState<RoleFilter>("All");
   const { players, loading, error } = useInjuries();
+  const { scoresByDate } = useScores();
 
   const filtered = useMemo(() => {
     if (filter === "All") return players;
@@ -199,7 +201,7 @@ export default function Dashboard() {
         <Card data-testid="card-trend">
           <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap">
             <div>
-              <CardTitle className="text-base">Winning percentage vs. injury waves</CardTitle>
+              <CardTitle className="text-base">Winning Percentage vs Injury Waves</CardTitle>
               <CardDescription>
                 Cumulative season win % over every game played. Vertical markers show the
                 dates of major IL transactions.
@@ -285,18 +287,30 @@ export default function Dashboard() {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    labelFormatter={(_, payload) => {
+                    labelFormatter={(_: any, payload: any[]) => {
                       const p = payload?.[0]?.payload as
                         | (typeof trend)[number]
                         | undefined;
                       if (!p) return "";
                       return `Game ${p.game} · ${format(parseISO(p.date), "MMM d")}`;
                     }}
-                    formatter={(value: number, _name, item) => {
+                    formatter={(value: number, _name: any, item: any) => {
                       const p = item.payload as (typeof trend)[number];
+                      const score = scoresByDate[p.date];
+                      const scoreLine = score
+                        ? `Dodgers ${score.runsFor} · ${score.opponent} ${score.runsAgainst}`
+                        : null;
+                      const wlPct = `W${p.wins}-L${p.losses} · .${Math.round(value * 1000).toString().padStart(3, "0")}`;
                       return [
-                        `${value.toFixed(3)} (${p.wins}-${p.losses})`,
-                        "Win %",
+                        <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          {scoreLine && (
+                            <span style={{ color: "hsl(var(--foreground))", fontWeight: 600 }}>
+                              {scoreLine}
+                            </span>
+                          )}
+                          <span>{wlPct}</span>
+                        </span>,
+                        "",
                       ];
                     }}
                   />
