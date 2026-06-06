@@ -4,7 +4,7 @@
 Repo: https://github.com/RogerMallett/DODGERS-INJUREDLIST
 Branch: icm-refactor
 Local path: C:\__My_AI_Projects\dodgers-injuredlist
-Public URL: https://dodgers-injury-tracker.vercel.app
+Public URL: https://dodgers-injuredlist.vercel.app (also: https://dodgers-injury-tracker.vercel.app)
 
 ## Current Status
 Live on Vercel. Full-stack deployment working end-to-end.
