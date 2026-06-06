@@ -6,7 +6,7 @@
     "api/injuries.ts": {
       "maxDuration": 10
     },
-    "api/scores.ts": {
+    "api/season.ts": {
       "maxDuration": 10
     }
   }
