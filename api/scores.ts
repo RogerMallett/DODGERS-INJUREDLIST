@@ -31,7 +31,7 @@ async function fetchGameScores(): Promise<GameScore[]> {
   const url =
     `https://statsapi.mlb.com/api/v1/schedule` +
     `?teamId=${DODGERS_ID}&season=2026&gameType=R` +
-    `&hydrate=linescore&startDate=2026-03-26&endDate=2026-12-31`;
+    `&startDate=2026-03-26&endDate=2026-12-31`;
 
   console.log("Fetching scores from:", url);
   const res = await fetch(url);
@@ -61,7 +61,10 @@ async function fetchGameScores(): Promise<GameScore[]> {
       const runsFor = dodgers.score ?? 0;
       const runsAgainst = opponent.score ?? 0;
       const opponentId = opponent.team?.id as number;
-      const opponentName = TEAM_ABBREV[opponentId] ?? opponent.team?.name ?? "Opponent";
+      const opponentName =
+        TEAM_ABBREV[opponentId] ?? opponent.team?.name ?? "Opponent";
+
+      console.log(`  ${dateEntry.date}: Dodgers ${runsFor} - ${opponentName} ${runsAgainst}`);
 
       scores.push({
         date: dateEntry.date,
@@ -72,7 +75,7 @@ async function fetchGameScores(): Promise<GameScore[]> {
     }
   }
 
-  console.log("Scores parsed:", scores.length);
+  console.log("Total scores parsed:", scores.length);
   return scores;
 }
 

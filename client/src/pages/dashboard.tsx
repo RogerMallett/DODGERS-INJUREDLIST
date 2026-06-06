@@ -300,7 +300,7 @@ export default function Dashboard() {
                       const scoreLine = score
                         ? `Dodgers ${score.runsFor} · ${score.opponent} ${score.runsAgainst}`
                         : null;
-                      const wlPct = `Wins: ${p.wins}   Losses: ${p.losses}   PCT: .${Math.round(value * 1000).toString().padStart(3, "0")}`;
+                      const wlPct = `Wins: ${p.wins}  ·  Losses: ${p.losses}  ·  PCT: .${Math.round(value * 1000).toString().padStart(3, "0")}`;
                       return [
                         <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                           {scoreLine && (
