@@ -26,10 +26,11 @@ const TEAM_ABBREV: Record<number, string> = {
 const DODGERS_ID = 119;
 
 async function fetchGameScores(): Promise<GameScore[]> {
+  const today = new Date().toISOString().split("T")[0];
   const url =
     `https://statsapi.mlb.com/api/v1/schedule` +
     `?sportId=1&teamId=${DODGERS_ID}&season=2026&gameType=R` +
-    `&startDate=2026-03-26&endDate=2026-12-31`;
+    `&startDate=2026-03-26&endDate=${today}`;
 
   console.log("[scores] Fetching:", url);
 

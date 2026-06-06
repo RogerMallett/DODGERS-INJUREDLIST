@@ -304,7 +304,8 @@ export default function Dashboard() {
                     formatter={(value: number, _name: any, item: any) => {
                       const p = item.payload as (typeof trend)[number];
                       const score = scoresByDate[p.date];
-                      const pct = `.${Math.round(value * 1000).toString().padStart(3, "0")}`;
+                      const pctNumber = Math.round(value * 1000);
+                      const pct = pctNumber === 1000 ? "1.000" : `.${pctNumber.toString().padStart(3, "0")}`;
                       return [
                         <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                           {score && (
