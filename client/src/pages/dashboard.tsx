@@ -41,9 +41,9 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import { waves, trend, seasonSummary, ILPlayer } from "@/lib/data";
+import { waves, seasonSummary, ILPlayer } from "@/lib/data";
 import { useInjuries } from "@/hooks/use-injuries";
-import { useScores } from "@/hooks/use-scores";
+import { useSeason, SeasonGame } from "@/hooks/use-season";
 
 const positionLabel: Record<string, string> = {
   SP: "starting pitcher",
@@ -96,7 +96,7 @@ type RoleFilter = "All" | "Starting Pitcher" | "Relief Pitcher" | "Position Play
 export default function Dashboard() {
   const [filter, setFilter] = useState<RoleFilter>("All");
   const { players, loading, error } = useInjuries();
-  const { scoresByDate } = useScores();
+  const { trend, team, loading: seasonLoading, error: seasonError } = useSeason();
 
   const filtered = useMemo(() => {
     if (filter === "All") return players;
@@ -106,7 +106,7 @@ export default function Dashboard() {
   const waveAnnotations = useMemo(() => {
     return waves
       .map((w) => {
-        const point = trend.find((t) => t.date >= w.date);
+        const point = trend.find((t: SeasonGame) => t.date >= w.date);
         return point
           ? { ...w, game: point.game, pct: point.pct }
           : null;
@@ -114,10 +114,18 @@ export default function Dashboard() {
       .filter(Boolean) as Array<
       (typeof waves)[number] & { game: number; pct: number }
     >;
-  }, []);
+  }, [trend]);
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading injury data...</div>;
-  if (error) return <div className="min-h-screen bg-background flex items-center justify-center text-destructive">Error: {error}</div>;
+  const xTicks = useMemo(() => {
+    if (!trend.length) return [1];
+    const ticks: number[] = [];
+    for (let g = 1; g <= trend.length; g += 10) ticks.push(g);
+    if (ticks[ticks.length - 1] !== trend.length) ticks.push(trend.length);
+    return ticks;
+  }, [trend.length]);
+
+  if (loading || seasonLoading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading data...</div>;
+  if (error || seasonError) return <div className="min-h-screen bg-background flex items-center justify-center text-destructive">Error: {error || seasonError}</div>;
 
   const ilCount = players.filter((p) => p.status !== "Day-to-Day").length;
 
@@ -131,6 +139,8 @@ export default function Dashboard() {
   const highImpact = players.filter(
     (p) => p.impact === "High" && p.status !== "Day-to-Day"
   ).length;
+
+  const latest = trend.length ? trend[trend.length - 1] : null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -152,7 +162,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="font-mono" data-testid="badge-record">
-              {seasonSummary.wins}–{seasonSummary.losses} ({seasonSummary.pct.toFixed(3)})
+              {latest ? `${latest.wins}–${latest.losses} (${latest.pct.toFixed(3)})` : `${seasonSummary.wins}–${seasonSummary.losses} (${seasonSummary.pct.toFixed(3)})`}
             </Badge>
             <Badge className="bg-primary text-primary-foreground" data-testid="badge-standing">
               {seasonSummary.standing}
@@ -232,7 +242,7 @@ export default function Dashboard() {
                     dataKey="game"
                     type="number"
                     domain={[1, trend.length]}
-                    ticks={[1, 10, 20, 30, 40, 50, trend.length]}
+                    ticks={xTicks}
                     tickFormatter={(v) => {
                       const point = trend.find((t) => t.game === v);
                       return point ? format(parseISO(point.date), "MMM d") : "";
@@ -290,9 +300,7 @@ export default function Dashboard() {
                       minWidth: 200,
                     }}
                     labelFormatter={(_: any, payload: any[]) => {
-                      const p = payload?.[0]?.payload as
-                        | (typeof trend)[number]
-                        | undefined;
+                      const p = payload?.[0]?.payload as SeasonGame | undefined;
                       if (!p) return "";
                       return (
                         <span style={{ display: "flex", justifyContent: "space-between", fontWeight: 600, marginBottom: 4 }}>
@@ -301,22 +309,16 @@ export default function Dashboard() {
                         </span>
                       );
                     }}
-                    formatter={(value: number, _name: any, item: any) => {
-                      const p = item.payload as (typeof trend)[number];
-                      const score = scoresByDate[p.date];
-                      const pctNumber = Math.round(value * 1000);
-                      const pct = pctNumber === 1000 ? "1.000" : `.${pctNumber.toString().padStart(3, "0")}`;
+                    formatter={(_value: number, _name: any, item: any) => {
+                      const p = item.payload as SeasonGame;
+                      const teamName = team?.name ?? "Dodgers";
+                      const pct = p.pct === 1 ? "1.000" : `.${Math.round(p.pct * 1000).toString().padStart(3, "0")}`;
                       return [
                         <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                          {score && (
-                            <span style={{ display: "flex", justifyContent: "space-between", fontWeight: 600, color: "hsl(var(--foreground))" }}>
-                              <span>Dodgers {score.runsFor}</span>
-                              <span style={{ textAlign: "right" }}>{score.opponent} {score.runsAgainst}</span>
-                            </span>
-                          )}
-                          {!score && (
-                            <span style={{ color: "hsl(var(--muted-foreground))" }}>Score unavailable</span>
-                          )}
+                          <span style={{ display: "flex", justifyContent: "space-between", fontWeight: 600, color: "hsl(var(--foreground))" }}>
+                            <span>{teamName} {p.runsFor}</span>
+                            <span style={{ textAlign: "right" }}>{p.opponent} {p.runsAgainst}</span>
+                          </span>
                           <span style={{ display: "flex", justifyContent: "space-between", gap: 16, color: "hsl(var(--muted-foreground))" }}>
                             <span>Wins: {p.wins}</span>
                             <span>Losses: {p.losses}</span>
