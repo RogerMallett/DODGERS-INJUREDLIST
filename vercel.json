@@ -2,6 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "installCommand": "npm install",
+  "functions": {
+    "api/injuries.ts": {
+      "maxDuration": 10
+    }
+  },
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
