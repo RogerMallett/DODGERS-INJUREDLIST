@@ -44,6 +44,24 @@ import {
 import { waves, trend, seasonSummary, ILPlayer } from "@/lib/data";
 import { useInjuries } from "@/hooks/use-injuries";
 
+const positionLabel: Record<string, string> = {
+  SP: "starting pitcher",
+  RP: "relief pitcher",
+  CL: "closer",
+  CP: "closer",
+  C: "catcher",
+  "1B": "1st base",
+  "2B": "2nd base",
+  "3B": "3rd base",
+  SS: "shortstop",
+  LF: "left field",
+  CF: "center field",
+  RF: "right field",
+  OF: "outfield",
+  DH: "designated hitter",
+  P: "pitcher",
+};
+
 function impactBadge(impact: ILPlayer["impact"]) {
   const map = {
     High: "bg-destructive text-destructive-foreground",
@@ -123,7 +141,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="text-xl font-semibold tracking-tight" data-testid="text-title">
-                Leslie's Dodgers Injury Tracker
+                RB's Dodgers Injury Tracker
               </h1>
               <p className="text-xs text-muted-foreground" data-testid="text-subtitle">
                 2026 season · Updated {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
@@ -355,34 +373,37 @@ export default function Dashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Player</TableHead>
-                    <TableHead>Pos</TableHead>
+                    <TableHead>Impact</TableHead>
                     <TableHead>Injury</TableHead>
+                    <TableHead>Expected return</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>IL date</TableHead>
-                    <TableHead>Expected return</TableHead>
-                    <TableHead>Impact</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((p) => (
                     <TableRow key={p.name} data-testid={`row-player-${p.name.replace(/\s+/g, "-")}`}>
                       <TableCell className="font-medium">
-                        <div>{p.name}</div>
+                        <div>
+                          {p.name}{" "}
+                          <span className="font-normal text-muted-foreground text-xs">
+                            ({positionLabel[p.position] ?? p.position.toLowerCase()})
+                          </span>
+                        </div>
                         <div className="text-xs text-muted-foreground">{p.notes}</div>
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{p.position}</TableCell>
+                      <TableCell>{impactBadge(p.impact)}</TableCell>
                       <TableCell className="text-sm">{p.injury}</TableCell>
+                      <TableCell className="text-sm">{p.expectedReturn}</TableCell>
                       <TableCell>{statusBadge(p.status)}</TableCell>
                       <TableCell className="text-xs text-muted-foreground font-mono">
                         {format(parseISO(p.ilDate), "MMM d")}
                       </TableCell>
-                      <TableCell className="text-sm">{p.expectedReturn}</TableCell>
-                      <TableCell>{impactBadge(p.impact)}</TableCell>
                     </TableRow>
                   ))}
                   {filtered.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         No players match this filter.
                       </TableCell>
                     </TableRow>
