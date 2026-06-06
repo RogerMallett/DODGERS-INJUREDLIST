@@ -8,7 +8,8 @@ interface GameScore {
 }
 
 let cache: { data: GameScore[]; timestamp: number } | null = null;
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const CACHE_BUST = "2026-06-06"; // bump this date to force a fresh fetch
+const CACHE_TTL_MS = 1 * 60 * 60 * 1000;
 
 const TEAM_ABBREV: Record<number, string> = {
   108: "Angels",    109: "D-backs",  110: "Orioles",
@@ -98,7 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (cache && Date.now() - cache.timestamp < CACHE_TTL_MS) {
-      res.status(200).json({ scores: cache.data, cached: true });
+      res.status(200).json({ scores: cache.data, cached: true, bust: CACHE_BUST });
       return;
     }
 
