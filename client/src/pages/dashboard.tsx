@@ -126,7 +126,7 @@ export default function Dashboard() {
                 Leslie's Dodgers Injury Tracker
               </h1>
               <p className="text-xs text-muted-foreground" data-testid="text-subtitle">
-                2026 season · Updated {seasonSummary.lastUpdated}
+                2026 season · Updated {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </p>
             </div>
           </div>
