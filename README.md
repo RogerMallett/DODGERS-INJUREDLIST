@@ -2,18 +2,19 @@
 
 An interactive dashboard tracking Los Angeles Dodgers injured list (IL) players, expected return dates, position impact, and team winning percentage trends throughout the 2026 season.
 
-**Live demo:** https://dodgers-injury-tracker.vercel.app
+**Live demo:** https://dodgers-injuredlist.vercel.app (also: https://dodgers-injury-tracker.vercel.app)
 
 ---
 
 ## What's inside
 
-- **KPI cards** — current record, win %, games back, current streak
-- **Win % trend chart** — rolling winning percentage with injury-wave overlays
-- **IL table** — every player on the 10-day, 15-day, and 60-day IL with injury, expected return, and severity
-- **Position-impact view** — which positions are hardest hit
+- **Header badges** — current record + win %, division standing, last-10 / streak
+- **KPI cards** — players on IL, pitchers on IL, high-impact injuries, run differential
+- **Win % trend chart** — cumulative season winning percentage with injury-wave overlays; hover a game for the score and W–L–PCT
+- **IL table** — every player on the 10-day, 15-day, and 60-day IL with impact, injury, expected return, and status
+- **Position-impact view** — which units (rotation, bullpen, position players) are hardest hit
 
-Stack: Express + Vite + React 18 + TypeScript + Tailwind CSS v3 + shadcn/ui + Recharts + Drizzle ORM + better-sqlite3.
+Stack: React 18 + TypeScript + Vite + Tailwind CSS v3 + shadcn/ui + Recharts + Wouter. Backend in production is Vercel serverless functions (api/injuries.ts, api/season.ts) calling the MLB Stats API and the Claude API. The Express server and Drizzle ORM + better-sqlite3 are present in the repo but not deployed.
 
 ---
 
@@ -61,7 +62,7 @@ Open http://localhost:5000 in any browser. The dev server has hot-reload — edi
 npm run build
 ```
 
-Output goes to `dist\public\`. You can host this folder on any static host (Vercel, Cloudflare Pages, Netlify, GitHub Pages, S3).
+Output goes to `dist\public\` (gitignored — not committed). On Vercel this is built automatically on deploy. Note: the static client alone won't return live data — the `/api/injuries` and `/api/season` serverless functions must also be deployed (they run on Vercel and require `ANTHROPIC_API_KEY` in the environment).
 
 ---
 
@@ -80,27 +81,22 @@ cd C:\Users\<you>\projects\dodgers-il
 claude
 ```
 
-Claude Code will automatically pick up `claude.md` for project context. Open the same folder in VS Code side-by-side for the best workflow.
+Claude Code will automatically pick up `CLAUDE.md` for project context. Open the same folder in VS Code side-by-side for the best workflow.
 
 ---
 
 ## Where the data lives
 
-All current IL data is hardcoded in:
+Injury and win%-trend data are now fetched **live**, not hardcoded:
 
-```
-client\src\lib\data.ts
-```
+- `/api/injuries` (`api\injuries.ts`) — pulls the Dodgers roster from the MLB Stats API, filters to IL players, then enriches each with expected return / impact / notes via the Claude API. Consumed by `client\src\hooks\use-injuries.ts`.
+- `/api/season` (`api\season.ts`) — pulls the season schedule from the MLB Stats API and computes the cumulative win% trend (one entry per completed game). Consumed by `client\src\hooks\use-season.ts`.
 
-This file has three exports:
+The only remaining static data is in `client\src\lib\data.ts`, which now exports:
 
-- `dodgersInjuredList` — array of player objects (name, position, injury, IL type, expected return)
-- `injuryWaves` — key wave events to annotate on the chart
-- `gameLog` — per-game results for the season-to-date win % calculation
-
-To refresh the dashboard for today, edit those arrays and save. The dev server hot-reloads.
-
-**Next major upgrade** (see `claude.md`): replace the static `data.ts` with a live fetch from the [MLB Stats API](https://statsapi.mlb.com/api/) so the dashboard stays current automatically.
+- `waves` — editorial injury-wave annotations for the chart (the MLB API does not provide these)
+- `seasonSummary` — partially static; wins/losses are overridden live from `/api/season`, but standing, last-10, streak, and run differential are still a manual snapshot
+- `players` — a static IL array kept for reference/fallback (the live dashboard uses `/api/injuries`, not this)
 
 ---
 
@@ -108,23 +104,29 @@ To refresh the dashboard for today, edit those arrays and save. The dev server h
 
 ```
 dodgers-il\
+├─ api\                  # Vercel serverless functions (PRODUCTION backend)
+│  ├─ injuries.ts        # MLB roster + Claude enrichment → /api/injuries
+│  └─ season.ts          # MLB schedule → cumulative win% trend → /api/season
 ├─ client\               # React frontend (Vite)
 │  ├─ src\
 │  │  ├─ App.tsx        # Router (hash-based)
 │  │  ├─ pages\
 │  │  │  └─ dashboard.tsx
+│  │  ├─ hooks\         # use-injuries.ts, use-season.ts (live data)
 │  │  ├─ components\    # shadcn/ui components
 │  │  ├─ lib\
-│  │  │  └─ data.ts     # ← All IL + game data lives here
+│  │  │  └─ data.ts     # ← Only static `waves`, `seasonSummary`, `players` remain
 │  │  └─ index.css      # Dodger blue theme
 │  └─ index.html
-├─ server\               # Express backend (optional, ready to wire up)
-├─ shared\               # Types/schema shared client+server
-├─ dist\public\          # Build output (committed for static hosts)
+├─ docs\                 # ROADMAP.md, DATA-SOURCES.md
+├─ server\               # Express backend (present but NOT deployed on Vercel)
+├─ shared\               # Drizzle schema (present but unused)
+├─ dist\public\          # Build output (gitignored; built by Vercel on deploy)
 ├─ package.json
 ├─ vite.config.ts
 ├─ tailwind.config.ts
-└─ claude.md             # Claude Code project context
+├─ vercel.json           # Vercel build + serverless function config
+└─ CLAUDE.md             # Claude Code project context
 ```
 
 ---
@@ -141,9 +143,9 @@ npx vercel --prod
 
 The project is linked to `rogermallett-8478s-projects/dodgers-injury-tracker`. First run will prompt you to log in.
 
-### Cloudflare Pages / Netlify / any static host
+### Other hosts
 
-Run `npm run build`, then upload `dist\public\` to the host. No server required.
+Vercel is the supported target because the app needs the `api/` serverless functions for live data. A plain static upload of `dist\public\` to a generic static host will load the UI but the `/api/injuries` and `/api/season` calls will fail — any alternative host must also run the `api/` functions and provide `ANTHROPIC_API_KEY`.
 
 ---
 

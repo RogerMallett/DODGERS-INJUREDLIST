@@ -19,21 +19,21 @@ A public injury tracking dashboard for sports fans — free for casual users, pa
 
 ## Phases
 
-### Phase 1 — ICM Structure and Static Dashboard (Current)
-- [x] ICM workspace scaffolded (claude.md, CONTEXT.md)
+### Phase 1 — ICM Structure and Static Dashboard (Done)
+- [x] ICM workspace scaffolded (CLAUDE.md, CONTEXT.md)
 - [x] Working dashboard (Perplexity-generated, React/Vite/Tailwind)
-- [ ] docs/ folder created (ROADMAP.md, DATA-SOURCES.md)
-- [ ] Dashboard verified running locally (npm run dev)
+- [x] docs/ folder created (ROADMAP.md, DATA-SOURCES.md)
+- [x] Dashboard verified running locally (npm run dev)
 
-### Phase 2 — Live MLB Data
-- [ ] Wire MLB Stats API (free, no key required)
-- [ ] Replace static/mock data with live IL feed
-- [ ] Auto-refresh on load
+### Phase 2 — Live MLB Data (Done)
+- [x] Wire MLB Stats API (free, no key required) — via api/injuries.ts and api/season.ts
+- [x] Replace static/mock data with live IL feed (+ Claude enrichment; win% trend now live too)
+- [x] Auto-refresh on load
 
-### Phase 3 — Deployment
-- [ ] Deploy to Vercel (free tier)
+### Phase 3 — Deployment (Mostly done)
+- [x] Deploy to Vercel (free tier)
 - [ ] GitHub Actions for daily auto-update
-- [ ] Public URL live
+- [x] Public URL live
 
 ### Phase 4 — Multi-Team (Paid Gate)
 - [ ] Team picker UI
