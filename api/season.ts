@@ -36,9 +36,6 @@ const TEAM_ABBREV: Record<number, string> = {
 const DEFAULT_TEAM_ID = 119;
 const SEASON = 2026;
 
-const cache: Record<number, { data: SeasonResponse; timestamp: number }> = {};
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-
 async function fetchSeasonTrend(teamId: number): Promise<SeasonResponse> {
   const today = new Date().toISOString().split("T")[0];
   const url =
@@ -127,15 +124,19 @@ export default async function handler(req: any, res: any) {
 
   const teamId = Number(req.query?.teamId) || DEFAULT_TEAM_ID;
 
+  // Shared edge cache instead of a per-instance memory cache:
+  //   max-age=0                  -> browser always revalidates (no stale-on-load)
+  //   s-maxage=300               -> Vercel edge serves one shared copy for 5 min
+  //   stale-while-revalidate=900 -> serve slightly-stale instantly, refresh in bg
+  // Season data only hits the free MLB API, so this costs nothing extra.
+  res.setHeader(
+    "Cache-Control",
+    "public, max-age=0, s-maxage=300, stale-while-revalidate=900"
+  );
+
   try {
-    const cached = cache[teamId];
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      res.status(200).json({ ...cached.data, cached: true });
-      return;
-    }
     const data = await fetchSeasonTrend(teamId);
-    cache[teamId] = { data, timestamp: Date.now() };
-    res.status(200).json({ ...data, cached: false });
+    res.status(200).json(data);
   } catch (err: any) {
     console.error("[season] FATAL:", err.message);
     res.status(500).json({ error: err.message });

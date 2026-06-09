@@ -103,26 +103,44 @@ export default function Dashboard() {
     return players.filter((p) => p.role === filter);
   }, [filter, players]);
 
-  const waveAnnotations = useMemo(() => {
-    return waves
-      .map((w) => {
-        const point = trend.find((t: SeasonGame) => t.date >= w.date);
-        return point
-          ? { ...w, game: point.game, pct: point.pct }
-          : null;
-      })
-      .filter(Boolean) as Array<
-      (typeof waves)[number] & { game: number; pct: number }
-    >;
-  }, [trend]);
+  // Real-date axis: attach an epoch-ms timestamp to every game point.
+  const chartData = useMemo(
+    () => trend.map((t) => ({ ...t, ts: parseISO(t.date).getTime() })),
+    [trend]
+  );
 
+  // Local midnight today — the axis always extends out to here, even with no game.
+  const todayTs = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }, []);
+
+  // Place each injury-wave marker at its real date (kept within the visible range).
+  const waveAnnotations = useMemo(() => {
+    const firstTs = chartData.length ? chartData[0].ts : 0;
+    return waves
+      .map((w) => ({ ...w, ts: parseISO(w.date).getTime() }))
+      .filter((w) => w.ts >= firstTs && w.ts <= todayTs);
+  }, [chartData, todayTs]);
+
+  // First-of-month ticks across the season, always anchored to today on the right.
   const xTicks = useMemo(() => {
-    if (!trend.length) return [1];
+    if (!chartData.length) return [todayTs];
+    const lastTs = chartData[chartData.length - 1].ts;
+    const rightAnchor = Math.max(todayTs, lastTs);
+    const d = new Date(chartData[0].ts);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(1);
+    d.setMonth(d.getMonth() + 1); // first of the month after the season opener
     const ticks: number[] = [];
-    for (let g = 1; g <= trend.length; g += 10) ticks.push(g);
-    if (ticks[ticks.length - 1] !== trend.length) ticks.push(trend.length);
+    while (d.getTime() < rightAnchor) {
+      ticks.push(d.getTime());
+      d.setMonth(d.getMonth() + 1);
+    }
+    ticks.push(rightAnchor);
     return ticks;
-  }, [trend.length]);
+  }, [chartData, todayTs]);
 
   if (loading || seasonLoading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading data...</div>;
   if (error || seasonError) return <div className="min-h-screen bg-background flex items-center justify-center text-destructive">Error: {error || seasonError}</div>;
@@ -141,6 +159,10 @@ export default function Dashboard() {
   ).length;
 
   const latest = trend.length ? trend[trend.length - 1] : null;
+  const domainMin = chartData.length ? chartData[0].ts : todayTs;
+  const domainMax = chartData.length
+    ? Math.max(todayTs, chartData[chartData.length - 1].ts)
+    : todayTs;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -230,7 +252,7 @@ export default function Dashboard() {
             <div className="h-[360px]" data-testid="chart-trend">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={trend}
+                  data={chartData}
                   margin={{ top: 28, right: 24, bottom: 32, left: 4 }}
                 >
                   <CartesianGrid
@@ -239,14 +261,12 @@ export default function Dashboard() {
                     vertical={false}
                   />
                   <XAxis
-                    dataKey="game"
+                    dataKey="ts"
                     type="number"
-                    domain={[1, trend.length]}
+                    scale="time"
+                    domain={[domainMin, domainMax]}
                     ticks={xTicks}
-                    tickFormatter={(v) => {
-                      const point = trend.find((t) => t.game === v);
-                      return point ? format(parseISO(point.date), "MMM d") : "";
-                    }}
+                    tickFormatter={(v) => format(new Date(v), "MMM d")}
                     tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                     stroke="hsl(var(--border))"
                   />
@@ -266,14 +286,14 @@ export default function Dashboard() {
                   {waveAnnotations.map((w, i) => (
                     <ReferenceLine
                       key={w.label}
-                      x={w.game}
+                      x={w.ts}
                       stroke="hsl(var(--chart-2))"
                       strokeDasharray="4 4"
                       strokeWidth={1.5}
                       label={(props: any) => {
                         const { viewBox } = props;
                         const prev = waveAnnotations[i - 1];
-                        const tooClose = !!prev && w.game - prev.game < 4;
+                        const tooClose = !!prev && w.ts - prev.ts < 4 * 24 * 60 * 60 * 1000;
                         const dx = tooClose ? 10 : 0;
                         return (
                           <text
